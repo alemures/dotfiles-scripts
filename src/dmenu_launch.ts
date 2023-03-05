@@ -1,7 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const utils = require('./utils');
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+import { run } from './utils';
 
 const appDirs = [
   '~/.local/share/applications',
@@ -9,8 +9,7 @@ const appDirs = [
   '/usr/local/share/applications',
 ];
 
-/** @type {string[]} */
-const apps = [];
+const apps: string[] = [];
 appDirs
   .filter((dir) => fs.existsSync(dir))
   .forEach((dir) => {
@@ -21,7 +20,7 @@ appDirs
       .forEach((filename) => apps.push(filename));
   });
 
-const dmenuResult = utils.run({
+const dmenuResult = run({
   command: 'dmenu',
   args: ['-i', '-p', 'Run app:'],
   options: { input: apps.join(os.EOL), silentExit: true },
@@ -30,7 +29,7 @@ const dmenuResult = utils.run({
 const app = dmenuResult.stdout.trim();
 if (!apps.includes(app)) throw new Error('Invalid selected app');
 
-utils.run({
+run({
   command: 'gtk-launch',
   args: [app],
 });

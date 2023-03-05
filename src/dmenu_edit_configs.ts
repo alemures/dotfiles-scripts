@@ -1,11 +1,11 @@
-const os = require('os');
-const utils = require('./utils');
+import os from 'os';
+import { getEnvVar, run } from './utils';
 
-const home = utils.getEnvVar('HOME');
-const terminal = utils.getEnvVar('TERMINAL');
-const editor = utils.getEnvVar('EDITOR');
+const home = getEnvVar('HOME');
+const terminal = getEnvVar('TERMINAL');
+const editor = getEnvVar('EDITOR');
 
-const configs = {
+const configs: Record<string, string | undefined> = {
   bash: `${home}/.bashrc`,
   bash_aliases: `${home}/.bash_aliases`,
   dunst: `${home}/.config/dunst/dunstrc`,
@@ -17,17 +17,16 @@ const configs = {
   xresources: `${home}/.Xresources`,
 };
 
-const dmenuResult = utils.run({
+const dmenuResult = run({
   command: 'dmenu',
   args: ['-i', '-p', 'Edit config file:'],
   options: { input: Object.keys(configs).join(os.EOL), silentExit: true },
 });
 
-// @ts-ignore
 const configPath = configs[dmenuResult.stdout.trim()];
 if (!configPath) throw new Error('Invalid config option');
 
-utils.run({
+run({
   command: terminal,
   args: ['-e', editor, configPath],
 });

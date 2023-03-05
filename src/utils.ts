@@ -1,6 +1,10 @@
-const { spawnSync } = require('child_process');
-const os = require('os');
-const path = require('path');
+import {
+  spawnSync,
+  SpawnSyncOptionsWithStringEncoding,
+  SpawnSyncReturns,
+} from 'child_process';
+import os from 'os';
+import path from 'path';
 
 const scriptName = path.basename(process.argv[process.argv.length - 1]);
 const isDebug = getEnvVar('DEBUG', '');
@@ -11,26 +15,23 @@ process.on('uncaughtException', function (err) {
 });
 
 class XResources {
+  values: Map<string, string>;
   constructor() {
     this.values = XResources.load();
   }
-  /**
-   * @param {string} key
-   */
-  get(key) {
+  get(key: string) {
     const value = this.values.get(key);
     if (value) {
       return value;
     }
-    throw new Error(`Missing '${key}' key in XResources file`);
+    throw new Error(`Missing or empty '${key}' key in XResources file`);
   }
   static load() {
     const result = run({
       command: 'xrdb',
       args: ['-query'],
     });
-    /**@type {Map<string, string>} */
-    const values = new Map();
+    const values = new Map<string, string>();
     result.stdout
       .trim()
       .split(os.EOL)
@@ -68,12 +69,7 @@ const theme = {
   color15: xResources.get('*.color15'),
 };
 
-/**
- *
- * @param {string} name
- * @param {string} [defaultValue]
- */
-function getEnvVar(name, defaultValue) {
+export function getEnvVar(name: string, defaultValue?: string) {
   const value = process.env[name];
   if (value !== undefined) {
     return value;
@@ -82,20 +78,12 @@ function getEnvVar(name, defaultValue) {
   }
   throw new Error(`Missing env variable ${name}`);
 }
-module.exports.getEnvVar = getEnvVar;
 
-/**
- * @param {string} message
- */
-function alertInfo(message) {
+export function alertInfo(message: string) {
   spawnSync('notify-send', ['-u', 'normal', '-t', '5000', scriptName, message]);
 }
-module.exports.alertInfo = alertInfo;
 
-/**
- * @param {string} message
- */
-function alertError(message) {
+export function alertError(message: string) {
   spawnSync('notify-send', [
     '-u',
     'critical',
@@ -105,14 +93,12 @@ function alertError(message) {
     message,
   ]);
 }
-module.exports.alertError = alertError;
 
-/**
- * @param {import("child_process").SpawnSyncReturns<string>} spawnResult
- * @param {string} command
- * @param {boolean} silentExit
- */
-function checkExitOnFailure(spawnResult, command, silentExit) {
+export function checkExitOnFailure(
+  spawnResult: SpawnSyncReturns<string>,
+  command: string,
+  silentExit: boolean
+) {
   let error;
   let status;
 
@@ -137,27 +123,27 @@ function checkExitOnFailure(spawnResult, command, silentExit) {
   }
 }
 
-module.exports.checkExitOnFailure = checkExitOnFailure;
+interface RunArgsOptions {
+  input?: string;
+  cmd?: string;
+  shell?: boolean;
+  exitOnFailure?: boolean;
+  silentExit?: boolean;
+}
 
-/**
- * @param {object} param
- * @param {string} param.command
- * @param {string[]} [param.args]
- * @param {object} [param.options]
- * @param {string} [param.options.input]
- * @param {string} [param.options.cmd]
- * @param {boolean} [param.options.shell]
- * @param {boolean} [param.options.exitOnFailure]
- * @param {boolean} [param.options.silentExit]
- */
-function run({ command, args = [], options = {} }) {
-  /**@type {import('child_process').SpawnSyncOptionsWithStringEncoding} */
+interface RunArgs {
+  command: string;
+  args?: string[];
+  options?: RunArgsOptions;
+}
+
+export function run({ command, args = [], options = {} }: RunArgs) {
   const spawnOptions = {
     encoding: 'utf8',
     input: options.input,
     cwd: options.cmd,
     shell: options.shell,
-  };
+  } as SpawnSyncOptionsWithStringEncoding;
 
   const exitOnFailure =
     options.exitOnFailure !== undefined ? options.exitOnFailure : true;
@@ -177,8 +163,6 @@ function run({ command, args = [], options = {} }) {
   }
   return result;
 }
-
-module.exports.run = run;
 
 function getDMenuStyleArgs() {
   const xResourcesFont = xResources.get('URxvt.font');
