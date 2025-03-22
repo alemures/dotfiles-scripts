@@ -8,7 +8,9 @@ const editor = getEnvVar('EDITOR');
 const configs: Record<string, string | undefined> = {
   bash: `${home}/.bashrc`,
   bash_aliases: `${home}/.bash_aliases`,
+  compton: `${home}/.config/compton/compton.conf`,
   dunst: `${home}/.config/dunst/dunstrc`,
+  fontconfig: `${home}/.config/fontconfig/fonts.conf`,
   i3: `${home}/.config/i3/config`,
   i3status: `${home}/.config/i3status/config`,
   profile: `${home}/.profile`,
